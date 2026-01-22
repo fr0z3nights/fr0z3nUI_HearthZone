@@ -1,0 +1,80 @@
+
+2026-01-22
+	- Renamed to match fr0z3nUI addon naming conventions:
+		- fr0z3nUI_HearthZone.toc
+		- fr0z3nUI_HearthZone.lua
+	- SavedVariables updated to `fr0z3nUI_HearthZoneCharDB`.
+	- Keeps the macro API `HearthZone:GetZone()`.
+	- Includes a one-time migration from older `HearthZone` saved data.
+
+------------------------------------------------------------
+
+Thanks to the original author, it did pretty much what I wanted it to do.
+
+Just changed 'GetZoneText' to 'GetRealZoneText', oh and the names (sorry).
+
+Probably didn't need to change anything, just like messing with things,
+even though it hadn't been updated in 6 years (2018), still worked fine, 
+thats why I decided against re-cursing it.
+
+Just messed around with it for my own use, great little addon to begin with, 
+hearthstone location needs the zone name, tried a lot of things before coming
+across this.  Thought becuase of its last update it wouldn't work, but wrong,
+helps that its a pretty basic addon I guess.
+
+Installation
+	- Log Out
+	- Put the !HearthZone directory in your "[WoWDir]\Interface\Addons\" folder. 
+	- Log In, Make sure !HearthZone is enabled
+	- Visit an Inkeeper and set your Hearthstone, to initialize the addon.
+	- Type '/run HearthZone:GetZone()'
+	- A response "Inn Name, Zone Name" should come back.
+
+Inn Examples
+	Working											Not Working
+		Lions Pride Inn, Elwynn Forest
+		Trade District, Stormwind City			
+		Mage Quarter, Stormwind City					Pig and Whistle Tavern, Old Town	Not Stormwind City
+															  GetZoneText said, Cannals
+	
+But you get its better than just Lions Pride Inn, well thats a bad example, but some Inn's are not infamous.
+
+
+------------------------------------------------------------
+My Keybind Only Macros (Macro Toolkit)
+------------------------------------------------------------
+
+Hearthstone
+
+/cancelaura safari hat
+/run local s,d=GetItemCooldown"6948"s=s+d-GetTime()print(format((s>1 and"You Can Hearth in %d mins to"or"Hearthing to"),s/60,s%60))
+/run HearthZone:GetZone()
+/use item:184353
+
+	Hearthing to						You Can Hearth in 14 mins to
+	Mage Quarter, Stormwind City		Mage Quarter, Stormwind City
+
+------------------------------
+
+Garrison Hearthstone 
+	
+/cancelaura safari hat
+/script SetView(4)
+/run local s,d=GetItemCooldown"110560"s=s+d-GetTime()print(format((s>1 and" %d mins"or""),s/60,s%60))
+/use item:110560
+
+	Hearthing to My Garrison			My Garrison is available in 14 mins
+
+------------------------------
+
+Legion Hearthstone
+
+/cancelaura safari hat
+/script SetView(4)
+/run local s,d=GetItemCooldown"140192"s=s+d-GetTime()print(format((s>1 and"Dalaran Available in %d mins"or"Hearthing to Dalaran"),s/60,s%60))
+/use item:140192
+
+	Hearthing to Legion Dalaran			Legion Dalaran Available in 14 mins
+
+------------------------------
+

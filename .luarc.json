@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime.version": "Lua 5.1",
+  "workspace.checkThirdParty": false,
+  "type.weakUnionCheck": true,
+  "diagnostics.globals": [
+    "print",
+    "SlashCmdList",
+    "DEFAULT_CHAT_FRAME",
+
+    "CreateFrame",
+    "UIParent",
+    "BackdropTemplate",
+    "BasicFrameTemplateWithInset",
+
+    "GameTooltip",
+
+    "C_Container",
+    "C_Item",
+    "C_Map",
+    "C_Timer",
+    "Enum"
+  ]
+}
