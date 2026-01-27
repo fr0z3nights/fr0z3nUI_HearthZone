@@ -851,7 +851,8 @@ local function EnsureGUI()
       return
     end
     local CH = _G and rawget(_G, "C_Housing")
-    if not (CH and CH.GetCurrentHouseInfo) then
+    local EU = _G and rawget(_G, "EventUtil")
+    if not (CH and CH.GetPlayerOwnedHouses and CH.TeleportHome and EU and EU.RegisterOnceFrameEventAndCallback) then
       Print("Housing API unavailable.")
       return
     end
@@ -860,16 +861,21 @@ local function EnsureGUI()
       return
     end
 
-    local h = CH.GetCurrentHouseInfo()
-    if not h then
-      Print("Run this in your house to create the Home macro.")
-      return
+    local h
+    if CH.GetCurrentHouseInfo then
+      h = CH.GetCurrentHouseInfo()
     end
 
     local macroName = GetHomeMacroName(h)
 
-    local body = "#showtooltip\n" ..
-      "/run C_Housing.TeleportHome('" .. tostring(h.neighborhoodGUID) .. "','" .. tostring(h.houseGUID) .. "'," .. tostring(tonumber(h.plotID) or 0) .. ")"
+    local body
+    if h and h.neighborhoodGUID and h.houseGUID and h.plotID then
+      body = "#showtooltip\n" ..
+        "/run EventUtil.RegisterOnceFrameEventAndCallback(\"PLAYER_HOUSE_LIST_UPDATED\", function() C_Housing.TeleportHome(\"" .. tostring(h.neighborhoodGUID) .. "\",\"" .. tostring(h.houseGUID) .. "\",\"" .. tostring(h.plotID) .. "\") end) C_Housing.GetPlayerOwnedHouses()"
+    else
+      body = "#showtooltip\n" ..
+        "/run EventUtil.RegisterOnceFrameEventAndCallback(\"PLAYER_HOUSE_LIST_UPDATED\", function() local houses=C_Housing.GetPlayerOwnedHouses(); local hh=houses and houses[1]; if hh then C_Housing.TeleportHome(hh.neighborhoodGUID,hh.houseGUID,tostring(hh.plotID)) else print(\"No owned houses found\") end end) C_Housing.GetPlayerOwnedHouses()"
+    end
 
     local idx = GetMacroIndexByName(macroName)
     if idx and idx > 0 then
@@ -898,7 +904,7 @@ local function EnsureGUI()
       return
     end
     local CH = _G and rawget(_G, "C_Housing")
-    if not (CH and CH.GetCurrentHouseInfo) then
+    if not (CH and CH.GetCurrentHouseInfo and CH.GetPlayerOwnedHouses and CH.VisitHouse) then
       Print("Housing API unavailable.")
       return
     end
@@ -931,7 +937,7 @@ local function EnsureGUI()
     local macroName = "VS " .. tostring(tag)
 
     local body = "#showtooltip\n" ..
-      "/run C_Housing.VisitHouse('" .. tostring(h.neighborhoodGUID) .. "','" .. tostring(h.houseGUID) .. "'," .. tostring(tonumber(h.plotID) or 0) .. ")"
+      "/run EventUtil.RegisterOnceFrameEventAndCallback(\"PLAYER_HOUSE_LIST_UPDATED\", function() C_Housing.VisitHouse(\"" .. tostring(h.neighborhoodGUID) .. "\",\"" .. tostring(h.houseGUID) .. "\",\"" .. tostring(h.plotID) .. "\") end) C_Housing.GetPlayerOwnedHouses()"
 
     local idx = GetMacroIndexByName(macroName)
     if idx and idx > 0 then
@@ -979,35 +985,40 @@ local function EnsureGUI()
     return btn
   end
 
-  local visitTagLabel = AddWidget(macrosWidgets, frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"))
-  visitTagLabel:SetPoint("TOPLEFT", 185, -200)
-  visitTagLabel:SetText("Visit name:")
+  -- Housing macros are currently disabled (API churn / macro format updates).
+  local ENABLE_HOUSING_MACROS = false
 
-  visitTagBox = AddWidget(macrosWidgets, CreateFrame("EditBox", nil, frame, "InputBoxTemplate"))
-  visitTagBox:SetSize(70, 18)
-  visitTagBox:SetPoint("TOPLEFT", 255, -204)
-  visitTagBox:SetAutoFocus(false)
-  if visitTagBox.SetMaxLetters then
-    visitTagBox:SetMaxLetters(8)
+  if ENABLE_HOUSING_MACROS then
+    local visitTagLabel = AddWidget(macrosWidgets, frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"))
+    visitTagLabel:SetPoint("TOPLEFT", 185, -200)
+    visitTagLabel:SetText("Visit name:")
+
+    visitTagBox = AddWidget(macrosWidgets, CreateFrame("EditBox", nil, frame, "InputBoxTemplate"))
+    visitTagBox:SetSize(70, 18)
+    visitTagBox:SetPoint("TOPLEFT", 255, -204)
+    visitTagBox:SetAutoFocus(false)
+    if visitTagBox.SetMaxLetters then
+      visitTagBox:SetMaxLetters(8)
+    end
+    visitTagBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    visitTagBox:SetScript("OnEnterPressed", function(self)
+      local db2 = EnsureInit()
+      db2.window = db2.window or {}
+      db2.window.visitTag = SanitizeMacroTag(self:GetText()) or ""
+      self:ClearFocus()
+    end)
+    visitTagBox:SetScript("OnEditFocusLost", function(self)
+      local db2 = EnsureInit()
+      db2.window = db2.window or {}
+      db2.window.visitTag = SanitizeMacroTag(self:GetText()) or ""
+    end)
+    visitTagBox:SetScript("OnShow", function(self)
+      local db2 = EnsureInit()
+      local w = db2.window or {}
+      self:SetText(tostring(w.visitTag or ""))
+    end)
+    SetButtonTooltip(visitTagBox, "Up to 8 characters\nUsed for Visit macro name (VS <name>)")
   end
-  visitTagBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-  visitTagBox:SetScript("OnEnterPressed", function(self)
-    local db2 = EnsureInit()
-    db2.window = db2.window or {}
-    db2.window.visitTag = SanitizeMacroTag(self:GetText()) or ""
-    self:ClearFocus()
-  end)
-  visitTagBox:SetScript("OnEditFocusLost", function(self)
-    local db2 = EnsureInit()
-    db2.window = db2.window or {}
-    db2.window.visitTag = SanitizeMacroTag(self:GetText()) or ""
-  end)
-  visitTagBox:SetScript("OnShow", function(self)
-    local db2 = EnsureInit()
-    local w = db2.window or {}
-    self:SetText(tostring(w.visitTag or ""))
-  end)
-  SetButtonTooltip(visitTagBox, "Up to 8 characters\nUsed for Visit macro name (VS <name>)")
 
   -- Left column
   MakeMacroButton("HS 06 Garrison", 10, -86, MacroBody_HS_Garrison)
@@ -1021,16 +1032,18 @@ local function EnsureGUI()
   MakeMacroButton("Rez", 185, -108, MacroBody_Rez)
   MakeMacroButton("Rez Combat", 185, -130, MacroBody_RezCombat)
   MakeMacroButton("Script Errors", 185, -152, MacroBody_ScriptErrors)
-  MakeActionButton("Home", 185, -174, RunHousingMacroCreateHome, function()
-    local faction = UnitFactionGroup and UnitFactionGroup("player")
-    if faction == "Alliance" then
-      return "Creates HM Alliance\nRun in your house"
-    elseif faction == "Horde" then
-      return "Creates HM Horde\nRun in your house"
-    end
-    return "Creates HM Home\nRun in your house"
-  end)
-  MakeActionButton("Visit", 185, -226, RunHousingMacroCreateVisit, "Creates VS <name> (or VS <plotID>)\nRun in a friend's house")
+  if ENABLE_HOUSING_MACROS then
+    MakeActionButton("Home", 185, -174, RunHousingMacroCreateHome, function()
+      local faction = UnitFactionGroup and UnitFactionGroup("player")
+      if faction == "Alliance" then
+        return "Creates HM Alliance\nRun in your house (preferred)"
+      elseif faction == "Horde" then
+        return "Creates HM Horde\nRun in your house (preferred)"
+      end
+      return "Creates HM Home\nRun in your house (preferred)"
+    end)
+    MakeActionButton("Visit", 185, -226, RunHousingMacroCreateVisit, "Creates VS <name> (or VS <plotID>)\nRun in a friend's house")
+  end
 
   local function SetTab(which)
     local db2 = EnsureInit()
@@ -1152,7 +1165,7 @@ end
 local f = CreateFrame("Frame")
 f:RegisterEvent("PLAYER_LOGIN")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:RegisterEvent("PLAYER_BIND_UPDATE")
+f:RegisterEvent("UPDATE_BINDINGS")
 f:RegisterEvent("HEARTHSTONE_BOUND")
 f:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
 f:RegisterEvent("SPELL_UPDATE_COOLDOWN")
@@ -1237,7 +1250,7 @@ f:SetScript("OnEvent", function(_, event)
   end
 
   local db, charKey = EnsureInit()
-  if event == "HEARTHSTONE_BOUND" or event == "PLAYER_BIND_UPDATE" then
+  if event == "HEARTHSTONE_BOUND" or event == "UPDATE_BINDINGS" then
     db[charKey] = GetRealZoneText() or ""
     if _G.fHZ and type(_G.fHZ._refreshUI) == "function" then
       _G.fHZ._refreshUI()
