@@ -1,23 +1,20 @@
-# fr0z3nUI HearthZone
+# fr0z3nUI HearthZone (Deprecated)
 
-Shows your hearth bind location and current zone, with a small UI and optional macro helper.
+This addon has been merged into **fr0z3nUI AutoOpen (FAO)**.
+
+- Use FAO's options window and open the **Hearth** tab (with **Hearth** + **Macros** sub-tabs).
+- HearthZone is kept here only as a legacy / reference addon.
 
 ## Install
-1. Copy the folder `fr0z3nUI_HearthZone` into:
-	- `World of Warcraft/_retail_/Interface/AddOns/`
-2. Launch WoW and enable the addon.
+Prefer installing/enabling **fr0z3nUI_AutoOpen** instead.
 
-## Slash Commands
-- `/fhz` — toggle window
-- `/fhz macro` — create/update a macro named `HearthZone` (uses selected toy if set)
-- `/fhz help` or `/fhz ?` — show help
+If you still enable this legacy addon, behavior and support are not guaranteed.
 
-## Useful /run snippets
-- `/run fHZ:GetZone()`
-- `/run print(fHZ:GetHomeText())`
+## Slash Commands / /run snippets
+These were for the standalone legacy addon. In FAO, use the **Hearth** tab UI.
 
 ## SavedVariables
-- Character: `fr0z3nUI_HearthZoneCharDB`
+- Legacy Character DB: `fr0z3nUI_HearthZoneCharDB`
 
 ## Notes
 - Macro updates are skipped in combat (as required by the WoW UI environment).
